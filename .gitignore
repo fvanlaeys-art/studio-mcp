@@ -1,0 +1,6 @@
+node_modules/
+.env
+.oauth-state.json
+bin/
+*.mp4
+*.mp3

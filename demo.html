@@ -1,0 +1,297 @@
+<title>Studio FVL — Banc d'essai</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: console à une colonne, deux bancs d'essai (image, voix) empilés */
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --sunk:#E9EDEB; --line:#D5DCD9;
+  --ink:#14211D; --muted:#5B6964; --accent:#0E6B57; --accent-ink:#FFFFFF;
+  --bad:#B42E2E; --bad-soft:#F8E1E1; --warn:#A86200; --warn-soft:#FBEFD9;
+  --f-display:"Bricolage Grotesque","Hanken Grotesk",system-ui,sans-serif;
+  --f-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1614; --surface:#16201D; --sunk:#1D2925; --line:#2B3A35;
+  --ink:#E6EEEB; --muted:#9AABA5; --accent:#4CC3A2; --accent-ink:#06231B;
+  --bad:#F07A7A; --bad-soft:#3A1C1C; --warn:#E8A84A; --warn-soft:#352914; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --surface:#16201D; --sunk:#1D2925; --line:#2B3A35;
+  --ink:#E6EEEB; --muted:#9AABA5; --accent:#4CC3A2; --accent-ink:#06231B;
+  --bad:#F07A7A; --bad-soft:#3A1C1C; --warn:#E8A84A; --warn-soft:#352914; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);margin:0;min-height:100%}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+.wrap{max-width:680px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.hd{display:flex;flex-direction:column;gap:4px}
+.hd .eyebrow{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;font-family:var(--f-data)}
+.hd h1{font-size:1.5rem}
+.status{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--muted);font-family:var(--f-data)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.ok{background:var(--accent)} .dot.bad{background:var(--bad)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:1.05rem}
+.panel p.hint{margin:0;color:var(--muted);font-size:.88rem}
+label{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--muted);font-weight:500}
+textarea,select{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:9px 11px;width:100%;font-size:15px}
+textarea{min-height:84px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row > label{flex:1;min-width:140px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.9rem;align-self:flex-start}
+.btn:hover{filter:brightness(1.06)}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.result{border:1px dashed var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:48px;justify-content:center}
+.result img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
+.result audio{width:100%}
+.result .muted{color:var(--muted);font-size:.85rem;text-align:center}
+.err{background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:10px 12px;font-size:.86rem}
+.meta{font-family:var(--f-data);font-size:.76rem;color:var(--muted);word-break:break-all}
+</style>
+
+<div class="wrap">
+  <div class="hd">
+    <div class="eyebrow">Van Laeys Consulting</div>
+    <h1>Studio FVL — banc d'essai</h1>
+    <div class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Vérification du connecteur…</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Générer une image publicitaire</h2>
+    <p class="hint">Appelle <code>generate_image</code> (OpenAI gpt-image-2) via le connecteur « Studio FVL », puis enregistre le résultat dans la bibliothèque d'assets de cette page.</p>
+    <label>Prompt
+      <textarea id="imgPrompt">Visuel publicitaire Meta au format 4:5 pour Auditoo, logiciel d'automatisation de diagnostics immobiliers. Accroche à intégrer visuellement : "Vos diagnostics vous prennent vos soirées ?". Style photo réaliste, bureau moderne et lumineux, professionnel, ambiance rassurante.</textarea>
+    </label>
+    <div class="row">
+      <label>Format
+        <select id="imgSize">
+          <option value="1024x1024">1:1 — carré</option>
+          <option value="1024x1536" selected>4:5 / 9:16 — portrait</option>
+          <option value="1536x1024">Paysage</option>
+        </select>
+      </label>
+      <label>Qualité
+        <select id="imgQuality">
+          <option value="low">Basse (~0,006 $)</option>
+          <option value="medium" selected>Moyenne (~0,05 $)</option>
+          <option value="high">Haute (~0,21 $)</option>
+        </select>
+      </label>
+    </div>
+    <button class="btn" type="button" id="imgBtn">Générer l'image</button>
+    <div class="result" id="imgResult"><span class="muted">Le résultat apparaîtra ici.</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Générer une voix-off</h2>
+    <p class="hint">Appelle <code>generate_voice</code> (ElevenLabs) via le même connecteur.</p>
+    <label>Texte à lire
+      <textarea id="voiceText">Vos diagnostics vous prennent vos soirées ? Auditoo automatise tout, en un clic.</textarea>
+    </label>
+    <button class="btn" type="button" id="voiceBtn">Générer la voix-off</button>
+    <div class="result" id="voiceResult"><span class="muted">Le résultat apparaîtra ici.</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Générer une vidéo</h2>
+    <p class="hint">Appelle <code>generate_video_start</code> puis interroge <code>generate_video_status</code> (Gemini Omni Flash) — la génération prend 30 s à quelques minutes.</p>
+    <label>Prompt
+      <textarea id="videoPrompt">Dans un seul plan séquence continu, sans coupure de scène : un diagnostiqueur immobilier filme en POV son smartphone qu'il tient devant lui dans une pièce en cours de rénovation, lumière naturelle. Il dicte doucement : "Chambre un, premier étage, menuiserie PVC double vitrage." Pas de musique, pas de dialogue superflu.</textarea>
+    </label>
+    <div class="row">
+      <label>Format
+        <select id="videoAspect">
+          <option value="16:9">16:9 — paysage</option>
+          <option value="9:16" selected>9:16 — portrait (stories/reels)</option>
+        </select>
+      </label>
+      <label>Résolution
+        <select id="videoRes">
+          <option value="360p">360p</option>
+          <option value="720p" selected>720p</option>
+          <option value="1080p">1080p</option>
+          <option value="4k">4K</option>
+        </select>
+      </label>
+    </div>
+    <button class="btn" type="button" id="videoBtn">Générer la vidéo</button>
+    <div class="result" id="videoResult"><span class="muted">Le résultat apparaîtra ici.</span></div>
+  </div>
+</div>
+
+<script>
+const STUDIO = "Studio FVL";
+const $ = id => document.getElementById(id);
+
+function b64ToBlob(b64, mimeType){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], {type: mimeType});
+}
+
+function errorMessage(e){
+  switch(e?.code){
+    case "server_not_connected": return `Connecteur « ${STUDIO} » introuvable pour ce compte. Ajoute-le dans claude.ai → Réglages → Connecteurs.`;
+    case "needs_reauth": return `Le connecteur « ${STUDIO} » doit être reconnecté (claude.ai → Réglages → Connecteurs).`;
+    case "consent_required": case "not_in_manifest": return `Autorise le connecteur « ${STUDIO} » pour cette page quand claude.ai le demande.`;
+    case "approval_required": return "Demande refusée ou laissée sans réponse. Réessaie.";
+    case "tool_error": return "Le serveur de génération a renvoyé une erreur : " + (e?.message || "inconnue");
+    case "server_unavailable": case "upstream_error": return "Serveur de génération momentanément indisponible. Réessaie dans un instant.";
+    case "not_granted": case "capability_disabled": return "Les connecteurs ne sont pas disponibles dans cette vue.";
+    default: return "Génération impossible pour le moment (" + (e?.code || "erreur inconnue") + ").";
+  }
+}
+
+(async () => {
+  const C = window.claude;
+  if(!C || !C.use){
+    $("statusText").textContent = "Ouvre cette page depuis claude.ai pour utiliser le connecteur.";
+    $("statusDot").classList.add("bad");
+    return;
+  }
+  const [mcp, assets] = await Promise.all([C.use("mcp"), C.use("assets")]);
+
+  if(!mcp){
+    $("statusText").textContent = "Connecteurs indisponibles dans cette vue.";
+    $("statusDot").classList.add("bad");
+    $("imgBtn").disabled = true; $("voiceBtn").disabled = true;
+    return;
+  }
+
+  try{
+    const info = await mcp.listTools(STUDIO);
+    const server = info.servers.find(s => s.server === STUDIO);
+    if(server && server.tools.length){
+      $("statusDot").classList.add("ok");
+      $("statusText").textContent = `Connecté — ${server.tools.length} outil(s) : ${server.tools.map(t=>t.name).join(", ")}`;
+    } else {
+      $("statusDot").classList.add("bad");
+      $("statusText").textContent = `Connecteur « ${STUDIO} » non trouvé. Ajoute-le dans claude.ai → Réglages → Connecteurs.`;
+    }
+  }catch(e){
+    $("statusText").textContent = "Statut du connecteur inconnu — une tentative de génération le confirmera.";
+  }
+
+  $("imgBtn").addEventListener("click", async () => {
+    const btn = $("imgBtn"), box = $("imgResult");
+    btn.disabled = true; btn.textContent = "Génération… (peut prendre 10-30 s)";
+    box.replaceChildren(Object.assign(document.createElement("span"), {className:"muted", textContent:"Appel à Studio FVL en cours…"}));
+    try{
+      const res = await mcp.callTool(STUDIO, "generate_image", {
+        prompt: $("imgPrompt").value,
+        size: $("imgSize").value,
+        quality: $("imgQuality").value,
+      });
+      const block = res.content.find(b => b.type === "image");
+      if(!block) throw {code:"tool_error", message:"Pas d'image dans la réponse."};
+      let shown = false;
+      box.replaceChildren();
+      if(assets){
+        try{
+          const {url} = await assets.upload(b64ToBlob(block.data, block.mimeType || "image/png"));
+          const img = document.createElement("img"); img.src = url; img.alt = "Image générée";
+          const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = url;
+          box.append(img, meta);
+          shown = true;
+        }catch(e){ /* fall back to inline data URI below */ }
+      }
+      if(!shown){
+        const img = document.createElement("img");
+        img.src = `data:${block.mimeType || "image/png"};base64,${block.data}`;
+        img.alt = "Image générée";
+        box.append(img);
+      }
+    }catch(e){
+      box.replaceChildren(Object.assign(document.createElement("div"), {className:"err", textContent: errorMessage(e)}));
+    }
+    btn.disabled = false; btn.textContent = "Générer l'image";
+  });
+
+  $("voiceBtn").addEventListener("click", async () => {
+    const btn = $("voiceBtn"), box = $("voiceResult");
+    btn.disabled = true; btn.textContent = "Génération…";
+    box.replaceChildren(Object.assign(document.createElement("span"), {className:"muted", textContent:"Appel à Studio FVL en cours…"}));
+    try{
+      const res = await mcp.callTool(STUDIO, "generate_voice", { text: $("voiceText").value });
+      const block = res.content.find(b => b.type === "audio");
+      if(!block) throw {code:"tool_error", message:"Pas d'audio dans la réponse."};
+      box.replaceChildren();
+      let shown = false;
+      if(assets){
+        try{
+          const {url} = await assets.upload(b64ToBlob(block.data, block.mimeType || "audio/mpeg"));
+          const audio = document.createElement("audio"); audio.controls = true; audio.src = url;
+          const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = url;
+          box.append(audio, meta);
+          shown = true;
+        }catch(e){ /* fall back below */ }
+      }
+      if(!shown){
+        const audio = document.createElement("audio"); audio.controls = true;
+        audio.src = `data:${block.mimeType || "audio/mpeg"};base64,${block.data}`;
+        box.append(audio);
+      }
+    }catch(e){
+      box.replaceChildren(Object.assign(document.createElement("div"), {className:"err", textContent: errorMessage(e)}));
+    }
+    btn.disabled = false; btn.textContent = "Générer la voix-off";
+  });
+
+  $("videoBtn").addEventListener("click", async () => {
+    const btn = $("videoBtn"), box = $("videoResult");
+    btn.disabled = true; btn.textContent = "Lancement…";
+    box.replaceChildren(Object.assign(document.createElement("span"), {className:"muted", textContent:"Lancement de la génération…"}));
+    try{
+      const startRes = await mcp.callTool(STUDIO, "generate_video_start", {
+        prompt: $("videoPrompt").value,
+        aspectRatio: $("videoAspect").value,
+        resolution: $("videoRes").value,
+      });
+      const startBlock = startRes.content.find(b => b.type === "text");
+      const { fileId } = JSON.parse(startBlock?.text || "{}");
+      if(!fileId) throw {code:"tool_error", message:"Pas de fileId dans la réponse."};
+
+      let attempt = 0;
+      while(true){
+        attempt++;
+        btn.textContent = `Génération en cours… (${attempt * 8}s)`;
+        box.replaceChildren(Object.assign(document.createElement("span"), {className:"muted", textContent:`Vérification du statut… (tentative ${attempt})`}));
+        await new Promise(r => setTimeout(r, 8000));
+
+        const statusRes = await mcp.callTool(STUDIO, "generate_video_status", { fileId });
+        const videoBlock = statusRes.content.find(b => b.type === "video");
+
+        if(videoBlock){
+          box.replaceChildren();
+          let shown = false;
+          if(assets){
+            try{
+              const {url} = await assets.upload(b64ToBlob(videoBlock.data, videoBlock.mimeType || "video/mp4"));
+              const video = document.createElement("video"); video.controls = true; video.src = url; video.style.width = "100%"; video.style.borderRadius = "8px";
+              const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = url;
+              box.append(video, meta);
+              shown = true;
+            }catch(e){ /* fall back below */ }
+          }
+          if(!shown){
+            const video = document.createElement("video"); video.controls = true; video.style.width = "100%";
+            video.src = `data:${videoBlock.mimeType || "video/mp4"};base64,${videoBlock.data}`;
+            box.append(video);
+          }
+          break;
+        }
+
+        const textBlock = statusRes.content.find(b => b.type === "text");
+        const status = textBlock ? JSON.parse(textBlock.text) : {};
+        if(status.state === "failed") throw {code:"tool_error", message: status.error || "Génération échouée."};
+        if(attempt > 40) throw {code:"tool_error", message: "Délai dépassé (plus de 5 minutes)."};
+      }
+    }catch(e){
+      box.replaceChildren(Object.assign(document.createElement("div"), {className:"err", textContent: errorMessage(e)}));
+    }
+    btn.disabled = false; btn.textContent = "Générer la vidéo";
+  });
+})();
+</script>
