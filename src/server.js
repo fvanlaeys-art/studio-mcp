@@ -168,9 +168,15 @@ function buildServer() {
     async ({ fileId }, extra) => {
       const result = await withProgress(extra, () => checkVideo({ fileId }));
       if (result.state === "active") {
+        // "video" isn't a content type the MCP spec defines (only
+        // text/image/audio/resource/resource_link) — the SDK's own result
+        // validation rejects it. Binary video goes in an embedded resource.
         return {
           content: [
-            { type: "video", data: result.base64, mimeType: result.mimeType },
+            {
+              type: "resource",
+              resource: { uri: `studio-video://${fileId}`, mimeType: result.mimeType, blob: result.base64 },
+            },
             { type: "text", text: "Vidéo générée avec succès." },
           ],
         };
